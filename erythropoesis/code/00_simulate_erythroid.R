@@ -6,6 +6,9 @@ library(stringr)
 library(cowplot)
 library(irlba)
 
+eryth_color_maps <- c("P1" = "#3b82ae", "P2" = "#547294", "P3" = "#6d617a", "P4" = "#865160", "P5" = "#9f4046", "P6" = "#b8302c", "P7" = "#d11f12", "P8" = "#de1705")
+all_color_maps <- c(ejc_color_maps[c("HSC", "MPP", "CMP")], "MEP" = "#FF81AF" ,eryth_color_maps)
+
 #-----------
 # Parameters
 #-----------
@@ -20,10 +23,10 @@ library(irlba)
 # seed rando parameter for setting the seed
 # shuffle Randomly order the resulting cells and peaks
 
-bulk <- data.matrix(data.frame(fread("../data/exp100-bulk.counts.txt")))
-colnames(bulk) <- c("B", "CD4", "CD8", "CLP", "CMP", "Ery", "GMP", "GMP-A", "GMP-B", "GMP-C",
-                    "HSC", "LMPP", "MCP", "mDC", "Mega", "MEP", "Mono", "MPP",
-                    "NK", "pDC", "GMPunknown")
+bulk <- data.matrix(data.frame(fread("../data/combined_12.counts.tsv")))
+
+# Reorder based on trajectories
+bulk <- bulk[,c(2,4,1,3, 5:12)]
 
 simulate_scatac <- function(n_cells, which_celltypes, n_frags_per_cell = 1000, 
                             rate_noise = 0, seed = 100, shuffle = FALSE){
@@ -86,8 +89,8 @@ simulate_scatac <- function(n_cells, which_celltypes, n_frags_per_cell = 1000,
 }
 
 # Here, we call the function above to simulate data
-simulated_noisy <- simulate_scatac(50, c("Ery", "CMP", "CD8", "HSC", "CD4", "NK"), rate_noise = 0.8)
-simulated_clean <- simulate_scatac(50, c("Ery", "CMP", "CD8", "HSC", "CD4", "NK"), rate_noise = 0)
+simulated_noisy <- simulate_scatac(20, colnames(bulk), rate_noise = 0.2)
+simulated_clean <- simulate_scatac(20, colnames(bulk), rate_noise = 0)
 
 # Do a basic LSI embedding to assess
 compute_LSI <- function(x){
@@ -122,15 +125,15 @@ LSI_df_noise <- makeLSI_df(simulated_noisy)
 LSI_df_clean <- makeLSI_df(simulated_clean)
 
 p1 <- ggplot(shuf(LSI_df_clean), aes(x = LSI_2, y = LSI_3, color = celltype)) +
-  geom_point(size = 1) + scale_color_manual(values = jdb_color_maps) +
+  geom_point(size = 1) + scale_color_manual(values = all_color_maps) +
   ggtitle("clean - simulated")
 
 p2 <- ggplot(shuf(LSI_df_noise), aes(x = LSI_2, y = LSI_3, color = celltype)) +
-  geom_point(size = 1) + scale_color_manual(values = jdb_color_maps) +
+  geom_point(size = 1) + scale_color_manual(values = all_color_maps) +
   ggtitle("noisy - simulated")
 
 cowplot::ggsave(cowplot::plot_grid(p1, p2, nrow = 1), 
-                filename = "../output/simulated_comparison.pdf", width = 9, height = 4)
+                filename = "../output/erythroid_simulated_comparison.pdf", width = 9, height = 4)
 
 
 
