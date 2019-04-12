@@ -89,7 +89,7 @@ simulate_scatac <- function(n_cells, which_celltypes, n_frags_per_cell = 1000,
 }
 
 # Here, we call the function above to simulate data
-simulated_noisy <- simulate_scatac(20, colnames(bulk), rate_noise = 0.2)
+simulated_noisy <- simulate_scatac(20, colnames(bulk), rate_noise = 0.4)
 simulated_clean <- simulate_scatac(20, colnames(bulk), rate_noise = 0)
 
 # Do a basic LSI embedding to assess
